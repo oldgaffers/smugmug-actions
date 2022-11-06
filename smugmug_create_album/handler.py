@@ -3,6 +3,7 @@ import boto3
 from botocore.exceptions import ClientError
 from requests_oauthlib import OAuth1Session
 from requests_toolbelt.multipart import decoder
+import base64
 
 def get_secret(secret_name):
     region_name = "eu-west-1"
@@ -38,16 +39,30 @@ def createAlbum(smugmug, name, oga_no):
     print(r.json())
 
 def lambda_handler(event, context):
-    print(event)
-    body = event['body'].encode()
-    x = decoder.MultipartDecoder(body, event['headers']['content-type'])
-    print(x)
-    smugmug = getRequestsHandler()
-    name = ''
-    oga_no = ''
-    createAlbum(smugmug, name, oga_no)
-    # TODO implement
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
-    }
+    print(json.dumps(event))
+    postdata = base64.b64decode(event['body']).decode('iso-8859-1')
+    imgInput = ''
+    lst = []
+    content_type_header = event['headers']['content-type']
+    form = {}
+    for part in decoder.MultipartDecoder(postdata.encode('utf-8'), content_type_header).parts:
+        h = part.headers
+        # print(h)
+        if b'Content-Type' in h:
+            # print('content-type', h[b'Content-Type'])
+            pass
+        if b'Content-Disposition' in h:
+            cds = h[b'Content-Disposition'].decode('utf-8')
+            q = cds.split('; ')
+            p = [p.split('=') for p in q if '=' in p]
+            cd = dict({l[0]:l[1] for l in p})
+            k = cd['name'].split('"')[1]
+            form[k] = part.text
+            # print('field', cd, part.text)
+    for k in form.keys():
+        if k != 'file':
+            print(k, form[k])
+    print('oga_no', form['oga_no'])
+    # print(lst)
+    response = '' # s3client.put_object(  Body=lst[0].encode('iso-8859-1'),  Bucket='test',    Key='mypicturefinal.jpg')
+    return {'statusCode': '200','body': 'Success', 'headers': { 'Content-Type': 'text/html' }}
