@@ -1,0 +1,1 @@
+# smugmug-create-album
