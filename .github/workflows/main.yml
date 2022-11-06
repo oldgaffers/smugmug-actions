@@ -21,6 +21,8 @@ jobs:
       - name: package
         run: |
           poetry run pip install -t dist .
+          cd dist
+          zip -x '*.pyc' -r ../lambda.zip .
       - name: default deploy
         uses: appleboy/lambda-action@master
         with:
@@ -28,4 +30,4 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ${{ secrets.AWS_REGION }}
           function_name: smugmug-create-album
-          source: dist
+          zip_file: lambda.zip
