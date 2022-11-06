@@ -1,6 +1,7 @@
 import json
 import boto3
 from botocore.exceptions import ClientError
+from requests_oauthlib import OAuth1Session
 
 def get_secret():
 
@@ -21,7 +22,24 @@ def get_secret():
 
 def lambda_handler(event, context):
     print(event)
-    print(get_secret())
+    secrets = get_secret()
+    smugmug = OAuth1Session(secrets['api-key'],
+        client_secret=secrets['api-key-secret'],
+        resource_owner_key=secrets['access_token'],
+        resource_owner_secret=secrets['access_token_secret']
+    )
+    data = { 'UrlName': 'NCC-1701', 'Name': 'Enterprise (NCC-1701)' }
+    r = smugmug.post(
+        'https://www.smugmug.com/api/v2/folder/user/oga/Boats!albums',
+        json.dumps(data),
+        headers={'Accept':'application/json', 'Content-Type': 'application/json'}
+    )
+    print(r.status_code)
+    print(r.text)
+    print(r.json())
+};
+
+
     # TODO implement
     return {
         'statusCode': 200,
