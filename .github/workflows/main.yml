@@ -12,6 +12,13 @@ jobs:
     steps:
       - name: checkout source code
         uses: actions/checkout@v1
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9' 
+      - uses: abatilo/actions-poetry@v2
+      - name: package
+        run: |
+          poetry run pip install -t dist .
       - name: default deploy
         uses: appleboy/lambda-action@master
         with:
@@ -19,4 +26,4 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ${{ secrets.AWS_REGION }}
           function_name: smugmug-create-album
-          source: lambda_function.py
+          source: dist
