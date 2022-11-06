@@ -39,6 +39,8 @@ def createAlbum(smugmug, name, oga_no):
 
 def lambda_handler(event, context):
     print(event)
+    x = decoder.MultipartDecoder(event['body'], event['headers']['content-type'])
+    print(x)
     smugmug = getRequestsHandler()
     name = ''
     oga_no = ''
