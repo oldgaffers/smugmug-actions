@@ -2,6 +2,7 @@ import json
 import boto3
 from botocore.exceptions import ClientError
 from requests_oauthlib import OAuth1Session
+from requests_toolbelt.multipart import decoder
 
 def get_secret(secret_name):
     region_name = "eu-west-1"
