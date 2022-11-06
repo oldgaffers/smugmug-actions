@@ -6,9 +6,9 @@ Resources:
     Type: 'AWS::Serverless::Function'
     Properties:
       FunctionName: smugmug-create-album
-      Handler: lambda_function.lambda_handler
+      Handler: smugmug_create_album.handler.lambda_handler
       Runtime: python3.9
-      InlineCode: def lambda_handler(event, context):-
+      InlineCode: def lambda_handler(event, context):-<
         print(event)
       Description: ''
       MemorySize: 128
