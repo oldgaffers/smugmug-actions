@@ -4,6 +4,7 @@ from botocore.exceptions import ClientError
 from requests_oauthlib import OAuth1Session
 from requests_toolbelt.multipart import decoder
 import base64
+import werkzeug
 
 def get_secret(secret_name):
     region_name = "eu-west-1"
@@ -47,7 +48,8 @@ def lambda_handler(event, context):
     form = {}
     for part in decoder.MultipartDecoder(postdata.encode('utf-8'), content_type_header).parts:
         h = part.headers
-        # print(h)
+        x = [werkzeug.http.parse_options_header(h[k] for k in h.keys())]
+        print(x)
         if b'Content-Type' in h:
             # print('content-type', h[b'Content-Type'])
             pass
