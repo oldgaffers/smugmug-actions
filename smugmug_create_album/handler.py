@@ -39,32 +39,24 @@ def createAlbum(smugmug, name, oga_no):
     print(r.text)
     print(r.json())
 
+def formData(body, contentType):
+    form = {}
+    for part in decoder.MultipartDecoder(postdata.encode('utf-8'), contentType).parts:
+        postdata = base64.b64decode(body).decode('iso-8859-1')
+        h = part.headers
+        x = dict({k.decode():werkzeug.http.parse_options_header(h[k].decode()) for k in h.keys()})
+        cd = x['Content-Disposition']
+        print(cd)
+        if cd[0] == 'form-data':
+            fd = cd[1]
+            form[fd['name']] = { 'text': part.text}
+            if 'filename' in fd:
+                form[fd['name']]['filename'] = fd['filename']
+    return form
+    
 def lambda_handler(event, context):
     print(json.dumps(event))
-    postdata = base64.b64decode(event['body']).decode('iso-8859-1')
-    imgInput = ''
-    lst = []
-    content_type_header = event['headers']['content-type']
-    form = {}
-    for part in decoder.MultipartDecoder(postdata.encode('utf-8'), content_type_header).parts:
-        h = part.headers
-        x = [werkzeug.http.parse_options_header(h[k] for k in h.keys())]
-        print(x)
-        if b'Content-Type' in h:
-            # print('content-type', h[b'Content-Type'])
-            pass
-        if b'Content-Disposition' in h:
-            cds = h[b'Content-Disposition'].decode('utf-8')
-            q = cds.split('; ')
-            p = [p.split('=') for p in q if '=' in p]
-            cd = dict({l[0]:l[1] for l in p})
-            k = cd['name'].split('"')[1]
-            form[k] = part.text
-            # print('field', cd, part.text)
-    for k in form.keys():
-        if k != 'file':
-            print(k, form[k])
+    form = formData(event['body'], event['headers']['content-type'])
     print('oga_no', form['oga_no'])
-    # print(lst)
     response = '' # s3client.put_object(  Body=lst[0].encode('iso-8859-1'),  Bucket='test',    Key='mypicturefinal.jpg')
     return {'statusCode': '200','body': 'Success', 'headers': { 'Content-Type': 'text/html' }}
