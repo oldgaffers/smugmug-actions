@@ -40,9 +40,9 @@ def createAlbum(smugmug, name, oga_no):
     print(r.json())
 
 def formData(body, contentType):
+    postdata = base64.b64decode(body).decode('iso-8859-1')
     form = {}
     for part in decoder.MultipartDecoder(postdata.encode('utf-8'), contentType).parts:
-        postdata = base64.b64decode(body).decode('iso-8859-1')
         h = part.headers
         x = dict({k.decode():werkzeug.http.parse_options_header(h[k].decode()) for k in h.keys()})
         cd = x['Content-Disposition']
