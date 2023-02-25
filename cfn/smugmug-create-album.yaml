@@ -13,7 +13,15 @@ Resources:
       Description: ''
       MemorySize: 128
       Timeout: 3
+      FunctionUrlConfig:
+        AuthType: NONE
+         Cors:
+          AllowCredentials: false
+          AllowHeaders: content-type
+          AllowMethods: [POST, GET]
+          AllowOrigins: [http://localhost:3000, https://www.oga.org.uk, https://oga.org.uk]
       Policies:
-        - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:boatregister/smugmug*
-
+        - SSMParameterReadPolicy:
+            ParameterName: SMUGMUG/*
+        - SQSSendMessagePolicy:
+            QueueName: logging
