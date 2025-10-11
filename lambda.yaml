@@ -6,7 +6,7 @@ Resources:
     Type: 'AWS::Serverless::Function'
     Properties:
       FunctionName: smugmug-actions
-      Handler: smugmug_create_album.handler.lambda_handler
+      Handler: smugmug_actions.handler.lambda_handler
       Runtime: python3.13
       InlineCode: def lambda_handler(event, context):-<
         print(event)

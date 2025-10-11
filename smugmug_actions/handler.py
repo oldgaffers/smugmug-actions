@@ -177,9 +177,9 @@ def lambda_handler(event, context):
         qsp = event['queryStringParameters']
         path = event['requestContext']['http']['path']
         if path == '/thumb':
-            return thumbnail(qsp['albumKey'])
+            return thumbnail(qsp['album_key'])
         elif path == '/li':
-            return image(qsp['albumKey'])
+            return image(qsp['album_key'])
         elif path == '/album':
             return getAlbumKey(qsp['name'], qsp['oga_no'])
         else:
