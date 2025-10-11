@@ -8,9 +8,13 @@ import base64
 import werkzeug
 
 ssm = boto3.client('ssm')
+sqs = boto3.client('sqs')
 logQueue = 'https://sqs.eu-west-1.amazonaws.com/651845762820/logging'
 
 apiKey = ''
+
+def log(message):
+    sqs.send_message(QueueUrl=logQueue, MessageBody=f'smugmug-create-album {message}')
 
 def get_secret_ssm():
     global apiKey
@@ -39,6 +43,7 @@ def getRequestsHandler():
     )
 
 def createAlbum(smugmug, name, oga_no):
+    log(f'createAlbum {name}, {oga_no}')
     r = smugmug.post(
         'https://www.smugmug.com/api/v2/folder/user/oga/Boats!albums',
         json.dumps({ 'UrlName': f'OGA-{oga_no}', 'Name': f'{name} ({oga_no})' }),
@@ -51,9 +56,7 @@ def createAlbum(smugmug, name, oga_no):
             'body': { 'oga_no': oga_no, 'albumKey': r.json()['Response']['Album']['AlbumKey'] },
         }
     if r.status_code == 409:
-        sqs = boto3.client('sqs')
-        sqs.send_message(QueueUrl=logQueue, MessageBody=f'smugmug-create-album duplicate OGA no {oga_no}')
-    
+        log(f'smugmug-create-album duplicate OGA no {oga_no}')
         return {
             'statusCode': r.status_code,
             'headers': { 'Content-Type': 'application/json' },
@@ -70,7 +73,7 @@ def getApiKey():
         r = ssm.get_parameter(Name='/SMUGMUG/API_KEY/KEY', WithDecryption=True)
         return r['Parameter']['Value']
     return apiKey
-    
+
 def thumbnail(albumKey):
     apiKey = getApiKey()
     r = requests.get(f'https://api.smugmug.com/api/v2/album/{albumKey}!highlightimage',
@@ -90,7 +93,7 @@ def thumbnail(albumKey):
                 }) }
             return { 'statusCode': r.status_code, 'body': json.dumps(j) }
         except:
-            print(f"no thumbnail for album {albumKey} response was {r.text}")
+            log(f"no thumbnail for album {albumKey} response was {r.text}")
             return { 'statusCode': 404, 'body': json.dumps(r.text) }
     return { 'statusCode': r.status_code, 'body': json.dumps(r.text) }
     #return {
@@ -99,48 +102,92 @@ def thumbnail(albumKey):
     #    'body': json.dumps('Moved')
     #}
 
-def getAlbumKey(oga_no):
-    print('getAlbumKey', oga_no)
-    r = requests.get(f'https://oga.smugmug.com/Boats/OGA-{oga_no}')
-    key = r.text.split('"AlbumKey"')[1].split('"')[1];
-    return { 'statusCode': r.status_code, 'body': json.dumps({'albumKey': key}) }
+def largestImage(imageKey, caption):
+    apiKey = getApiKey()
+    r = requests.get(f'https://api.smugmug.com/api/v2/image/{imageKey}!largestimage',
+        headers={'accept': 'application/json' },
+        params={
+            '_filteruri': '',
+            # '_filter': 'ImageKey,FormattedValues',
+            'APIKey': apiKey
+        }
+    )
+    if r.ok:
+        j = r.json()['Response']
+        if 'LargestImage' in j:
+            resultBody = json.dumps({ 'url': j['LargestImage']['Url'], 'caption': caption }, ensure_ascii=False)
+            return { 'statusCode': r.status_code, 'body': resultBody }
+        return { 'statusCode': r.status_code, 'body': json.dumps(j) }
+    return { 'statusCode': r.status_code, 'body': json.dumps(r.text) }
 
-def newGetAlbumKey(smugmug, oga_no):
-    text = f"({oga_no})"
+def image(albumKey):
+    apiKey = getApiKey()
+    r = requests.get(f'https://api.smugmug.com/api/v2/album/{albumKey}!highlightimage',
+        headers={'accept': 'application/json' },
+        params={
+            '_filteruri': '',
+            '_filter': 'ImageKey,FormattedValues',
+            'APIKey': apiKey
+        }
+    )
+    if r.ok:
+        try:
+            j = r.json()['Response']
+            if 'AlbumImage' in j:
+                return largestImage(j['AlbumImage']['ImageKey'], j['AlbumImage']['FormattedValues']['Caption']['text'])
+            return { 'statusCode': r.status_code, 'body': json.dumps(j) }
+        except:
+            log(f"no thumbnail for album {albumKey} response was {r.text}")
+            return { 'statusCode': 404, 'body': json.dumps(r.text) }
+    return { 'statusCode': r.status_code, 'body': json.dumps(r.text) }
+
+def getAlbumKey(name, oga_no):
+    text = f'{name} ({oga_no})'
+    smugmug = getRequestsHandler()
     r = smugmug.get(f'https://api.smugmug.com/api/v2/album!search',
         headers={'accept': 'application/json' },
         params={
             'APIKey': apiKey,
-            'Scope': '/folder/user/oga/Boats/',
+            'Scope': '/api/v2/user/oga',
             'SortDirection': 'Descending',
             'SortMethod': 'Rank',
             'Text': text,
         }
     )
     if r.ok:
+        js = r.json()
         try:
-            j = r.json()['Response']
-            albums = j['Album']
-            urlName = f"OGA-{oga_no}"
-            matching = [a for a in albums if a['UrlName'] == urlName]
-            if len(matching)>0:
-              albumKey = matching[0]['AlbumKey']
+            albums = js['Response']['Album']
+            if len(albums)>0:
+              albumKey = albums[0]['AlbumKey']
               return { 'statusCode': r.status_code, 'body': json.dumps({'albumKey': albumKey}) }
             return { 'statusCode': r.status_code, 'body': json.dumps(j) }
         except:
-            print(f"no album for oga_no {oga_no} response was {r.text}")
+            log(f"no album for {text} response was {r.text}")
             return { 'statusCode': 404, 'body': json.dumps(r.text) }
+    print(r.status_code, r.text, text)
     return { 'statusCode': r.status_code, 'body': json.dumps(r.text) }
+
+def old_get(event):
+    n = event['requestContext']['http']['path'].split('/')
+    albumKey = n[1]
+    if len(n) == 3:
+        return image(albumKey)
+    return thumbnail(albumKey)
 
 def lambda_handler(event, context):
     # print(json.dumps(event))
     if event['requestContext']['http']['method'] == 'GET':
-        n = event['requestContext']['http']['path'].split('/')
-        if len(n) == 2:
-            albumKey = n[1]
-            return thumbnail(albumKey)
-        smugmug = getRequestsHandler()
-        return newGetAlbumKey(smugmug, n[2])
+        qsp = event['queryStringParameters']
+        path = event['requestContext']['http']['path']
+        if path == '/thumb':
+            return thumbnail(qsp['albumKey'])
+        elif path == '/li':
+            return image(qsp['albumKey'])
+        elif path == '/album':
+            return getAlbumKey(qsp['name'], qsp['oga_no'])
+        else:
+            return old_get(event)
     body = json.loads(event['body'])
     smugmug = getRequestsHandler()
     return createAlbum(smugmug, body['name'], body['oga_no'])
