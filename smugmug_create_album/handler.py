@@ -10,7 +10,7 @@ logQueue = 'https://sqs.eu-west-1.amazonaws.com/651845762820/logging'
 apiKey = ''
 
 def log(message):
-    sqs.send_message(QueueUrl=logQueue, MessageBody=f'smugmug-create-album {message}')
+    sqs.send_message(QueueUrl=logQueue, MessageBody=f'smugmug-actions {message}')
 
 def get_secret_ssm():
     global apiKey
@@ -52,7 +52,7 @@ def createAlbum(smugmug, name, oga_no):
             'body': { 'oga_no': oga_no, 'albumKey': r.json()['Response']['Album']['AlbumKey'] },
         }
     if r.status_code == 409:
-        log(f'smugmug-create-album duplicate OGA no {oga_no}')
+        log(f'duplicate OGA no {oga_no}')
         return {
             'statusCode': r.status_code,
             'headers': { 'Content-Type': 'application/json' },

@@ -1,1 +1,1 @@
-# smugmug-create-album
+# smugmug-actions
