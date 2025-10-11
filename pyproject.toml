@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "smugmug_create_album"
+name = "smugmug_actions"
 version = "0.1.0"
 description = "Example AWS Lambda Function using Poetry"
 authors = ["jcable <julian.cable@yahoo.com>"]
