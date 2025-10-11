@@ -1,11 +1,7 @@
 import json
 import boto3
-from botocore.exceptions import ClientError
 from requests_oauthlib import OAuth1Session
-from requests_toolbelt.multipart import decoder
 import requests
-import base64
-import werkzeug
 
 ssm = boto3.client('ssm')
 sqs = boto3.client('sqs')

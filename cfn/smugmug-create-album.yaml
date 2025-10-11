@@ -7,12 +7,14 @@ Resources:
     Properties:
       FunctionName: smugmug-create-album
       Handler: smugmug_create_album.handler.lambda_handler
-      Runtime: python3.9
+      Runtime: python3.13
       InlineCode: def lambda_handler(event, context):-<
         print(event)
       Description: ''
       MemorySize: 128
       Timeout: 3
+      Architectures:
+        - arm64
       FunctionUrlConfig:
         AuthType: NONE
          Cors:
