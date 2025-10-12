@@ -82,7 +82,10 @@ def thumbnail(albumKey, beta):
     )
     if r.ok:
         if beta is not None:
-            return { 'statusCode': 200, 'body': json.dumps(r.json()['Response']) }
+            r = r.json()['Response'].get('AlbumImage', None)
+            if r is None:
+                return { 'statusCode': 404, 'body': json.dumps('no image') }
+            return { 'statusCode': 200, 'body': json.dumps(r)}
         try:
             j = r.json()['Response']
             if 'AlbumImage' in j:
