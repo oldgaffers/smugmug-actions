@@ -70,7 +70,7 @@ def getApiKey():
         return r['Parameter']['Value']
     return apiKey
 
-def thumbnail(albumKey):
+def thumbnail(albumKey, beta):
     apiKey = getApiKey()
     r = requests.get(f'https://api.smugmug.com/api/v2/album/{albumKey}!highlightimage',
         headers={'accept': 'application/json' },
@@ -81,6 +81,8 @@ def thumbnail(albumKey):
         }
     )
     if r.ok:
+        if beta is not None:
+            return { 'statusCode': 200, 'body': json.dumps(r.text) }
         try:
             j = r.json()['Response']
             if 'AlbumImage' in j:
@@ -92,11 +94,6 @@ def thumbnail(albumKey):
             log(f"no thumbnail for album {albumKey} response was {r.text}")
             return { 'statusCode': 404, 'body': json.dumps(r.text) }
     return { 'statusCode': r.status_code, 'body': json.dumps(r.text) }
-    #return {
-    #    'statusCode': 301,
-    #    'headers': { 'Location': r.json()['Response']['AlbumImage']['ThumbnailUrl'] },
-    #    'body': json.dumps('Moved')
-    #}
 
 def largestImage(imageKey, caption):
     apiKey = getApiKey()
@@ -164,26 +161,19 @@ def getAlbumKey(name, oga_no):
     print(r.status_code, r.text, text)
     return { 'statusCode': r.status_code, 'body': json.dumps(r.text) }
 
-def old_get(event):
-    n = event['requestContext']['http']['path'].split('/')
-    albumKey = n[1]
-    if len(n) == 3:
-        return image(albumKey)
-    return thumbnail(albumKey)
-
 def lambda_handler(event, context):
     # print(json.dumps(event))
     if event['requestContext']['http']['method'] == 'GET':
         qsp = event['queryStringParameters']
         path = event['requestContext']['http']['path']
         if path == '/thumb':
-            return thumbnail(qsp['album_key'])
+            return thumbnail(qsp['album_key'], qsp.get('beta', None))
         elif path == '/li':
             return image(qsp['album_key'])
         elif path == '/album':
             return getAlbumKey(qsp['name'], qsp['oga_no'])
         else:
-            return old_get(event)
+            return { 'statusCode': 400, 'body': json.dumps('unknown request') }
     body = json.loads(event['body'])
     smugmug = getRequestsHandler()
     return createAlbum(smugmug, body['name'], body['oga_no'])
