@@ -1,6 +1,6 @@
 import json
-from log import log
-from auth import getRequestsHandler, getApiKey
+from smugmug_actions.log import log
+from smugmug_actions.auth import getRequestsHandler, getApiKey
 
 def createAlbum(name, oga_no):
     smugmug = getRequestsHandler()
