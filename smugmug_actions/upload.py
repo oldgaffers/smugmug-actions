@@ -1,5 +1,5 @@
 import boto3
-from import requests.auth import getRequestsHandler
+from smugmug_actions.auth import getRequestsHandler
 
 ssm = boto3.client('ssm')
 
