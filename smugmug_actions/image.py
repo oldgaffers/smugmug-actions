@@ -1,7 +1,7 @@
 import json
-from log import log
-from auth import getApiKey
 import requests
+from smugmug_actions.log import log
+from smugmug_actions.auth import getApiKey
 
 def thumbnail(albumKey, beta):
     apiKey = getApiKey()
