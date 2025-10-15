@@ -1,9 +1,9 @@
 import json
 import boto3
-from album import createAlbum, getAlbumKey
-from image import thumbnail, image
-from upload import uploadToSmugMug
-from mail import send_email
+from smugmug_actions.album import createAlbum, getAlbumKey
+from smugmug_actions.image import thumbnail, image
+from smugmug_actions.upload import uploadToSmugMug
+from smugmug_actions.mail import send_email
 
 s3 = boto3.client('s3')
 
