@@ -1,5 +1,5 @@
 import boto3
-from auth import getRequestsHandler
+from import requests.auth import getRequestsHandler
 
 ssm = boto3.client('ssm')
 
