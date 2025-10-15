@@ -16,6 +16,9 @@ def upload(bucket, key):
 
 def lambda_handler(event, context):
     # print(json.dumps(event))
+    if 'Records' in event:
+        s3 = event['Records'][0]['s3']
+        return upload(s3['bucket']['name'], s3['object']['key])
     if event['requestContext']['http']['method'] == 'GET':
         qsp = event['queryStringParameters']
         path = event['requestContext']['http']['path']
