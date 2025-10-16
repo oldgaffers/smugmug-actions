@@ -32,6 +32,8 @@ Resources:
           MaxAge: 0
       Policies:
         - SSMParameterReadPolicy:
+            ParameterName: MAIL_*
+        - SSMParameterReadPolicy:
             ParameterName: SMUGMUG/*
         - SQSSendMessagePolicy:
             QueueName: logging
