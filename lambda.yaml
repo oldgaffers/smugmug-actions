@@ -37,3 +37,7 @@ Resources:
             ParameterName: SMUGMUG/*
         - SQSSendMessagePolicy:
             QueueName: logging
+        - S3ReadPolicy:
+            BucketName: boatregister_upload
+        - S3ReadPolicy:
+            BucketName: upload-photo-to-smugmug
