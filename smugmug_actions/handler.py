@@ -9,6 +9,8 @@ from smugmug_actions.mail import send_email
 
 s3 = boto3.client('s3')
 
+localImageBucket = 'boatregister-public'
+
 def upload(bucket, key):
     # print('upload', bucket, key)
     o = s3.get_object(Bucket=bucket, Key=key)
@@ -25,7 +27,9 @@ def upload(bucket, key):
         uuid = meta['uuid']
         id = meta['id']
         _, ext = os.path.splitext(filename)
-        s3.copy_object(CopySource={ 'Bucket': bucket, 'Key': key}, Bucket='boatregister-public', Key=f"{id}/{uuid}.{ext}")
+        localImageKey = f"{id}/{uuid}{ext}"
+        s3.copy_object(CopySource={ 'Bucket': bucket, 'Key': key}, Bucket=localImageBucket, Key=localImageKey)
+        return { 'statusCode': 201, 'body': json.dumps(f"s3://{localImageBucket}/{localImageKey}") }
 
 def lambda_handler(event, context):
     # print(json.dumps(event))
