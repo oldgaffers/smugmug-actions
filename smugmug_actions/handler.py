@@ -1,5 +1,6 @@
 import json
 import boto3
+import os
 from urllib.parse import unquote_plus
 from smugmug_actions.album import createAlbum, getAlbumKey
 from smugmug_actions.image import thumbnail, image
@@ -21,7 +22,10 @@ def upload(bucket, key):
         return
     if 'uuid' in meta:
         print('TODO, local S3 copy', meta)
-    print('missing album key')
+        uuid = meta['uuid']
+        id = meta['id']
+        _, ext = os.path.splitext(filename)
+        s3.copy_object(CopySource={ 'Bucket': bucket, 'Key': key}, Bucket='boatregister-public', Key=f"{id}/{uuid}.{ext}")
 
 def lambda_handler(event, context):
     # print(json.dumps(event))

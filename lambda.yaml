@@ -39,3 +39,5 @@ Resources:
             QueueName: logging
         - S3ReadPolicy:
             BucketName: boatregister-upload
+        - S3CrudPolicy:
+            BucketName: boatregister-public
