@@ -19,7 +19,7 @@ def upload(bucket, key):
     if 'albumkey' in meta:
         albumkey = meta.get('albumkey', None)
         copyright = meta.get('copyright', 'OGA')
-        url = uploadToSmugMug(filename, albumkey, copyright, o['Body'])
+        url = uploadToSmugMug(filename, albumkey, copyright, o['Body'], o['ContentType'], o['ContentLength'])
         send_email(url, email, copyright)
         return
     if 'uuid' in meta:
@@ -47,5 +47,9 @@ def lambda_handler(event, context):
             return getAlbumKey(qsp['name'], qsp['oga_no'])
         else:
             return { 'statusCode': 400, 'body': json.dumps('unknown request') }
-    body = json.loads(event['body'])
-    return createAlbum(body['name'], body['oga_no'])
+    elif event['requestContext']['http']['method'] == 'POST':
+        body = json.loads(event['body'])
+        return createAlbum(body['name'], body['oga_no'])
+    else:
+        return { 'statusCode': 400, 'body': json.dumps('unknown request') }
+

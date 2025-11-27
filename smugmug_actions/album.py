@@ -18,10 +18,11 @@ def createAlbum(name, oga_no):
         }
     if r.status_code == 409:
         log(f'duplicate OGA no {oga_no}')
+        album = r.json()['Conflicts']['/api/v2/folder/user/oga/Boats!albums']['Album']
         return {
             'statusCode': r.status_code,
             'headers': { 'Content-Type': 'application/json' },
-            'body': { 'oga_no': oga_no, 'albumKey': r.json()['Conflicts']['/api/v2/folder/user/oga/Boats!albums']['Album']['AlbumKey'] },
+            'body': { 'oga_no': oga_no, 'albumKey': album['AlbumKey'], 'name': album['Name'], 'urlName': album['UrlName'] },
         }
     return {
         'statusCode': r.status_code,
@@ -30,7 +31,10 @@ def createAlbum(name, oga_no):
 
 def getAlbumKey(name, oga_no):
     apiKey = getApiKey()
-    text = f'{name} ({oga_no})'
+    if oga_no == '-':
+        text = name
+    else:
+        text = f'{name} ({oga_no})'
     smugmug = getRequestsHandler()
     r = smugmug.get(f'https://api.smugmug.com/api/v2/album!search',
         headers={'accept': 'application/json' },
