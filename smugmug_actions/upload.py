@@ -3,7 +3,7 @@ from smugmug_actions.auth import getRequestsHandler
 
 ssm = boto3.client('ssm')
 
-def uploadToSmugMug(filename, albumkey, copyright, body, contentType, contentLength):
+def uploadToSmugMug(filename, albumkey, copyright, keywords, body, contentType, contentLength):
     smugmug = getRequestsHandler()
     headers={
             'Content-Type': contentType,
@@ -12,6 +12,7 @@ def uploadToSmugMug(filename, albumkey, copyright, body, contentType, contentLen
            'X-Smug-AlbumUri': f"/api/v2/album/{albumkey}",
            'X-Smug-FileName': filename,
            'X-Smug-Caption': f"© {copyright}",
+           'X-Smug-Keywords': keywords,
            'X-Smug-Hidden': 'true',
            'X-Smug-ResponseType': 'JSON',
            'X-Smug-Version': 'v2'
