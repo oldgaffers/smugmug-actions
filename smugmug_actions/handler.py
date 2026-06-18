@@ -20,7 +20,7 @@ def upload(bucket, key):
     if 'albumkey' in meta:
         albumkey = meta.get('albumkey', None)
         copyright = meta.get('copyright', 'OGA')
-        keywords = b64decode(meta.get('keywords', ''))
+        keywords = b64decode(meta.get('keywords', '')).decode('utf-8')
         url = uploadToSmugMug(filename, albumkey, copyright, keywords, o['Body'], o['ContentType'], o['ContentLength'])
         send_email(url, email, copyright)
         return
