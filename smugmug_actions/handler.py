@@ -1,6 +1,7 @@
 import json
 import boto3
 import os
+from base64 import b64decode
 from urllib.parse import unquote_plus
 from smugmug_actions.album import createAlbum, getAlbumKey
 from smugmug_actions.image import thumbnail, image
@@ -19,7 +20,7 @@ def upload(bucket, key):
     if 'albumkey' in meta:
         albumkey = meta.get('albumkey', None)
         copyright = meta.get('copyright', 'OGA')
-        keywords = meta.get('keywords', '');
+        keywords = b64decode(meta.get('keywords', ''))
         url = uploadToSmugMug(filename, albumkey, copyright, keywords, o['Body'], o['ContentType'], o['ContentLength'])
         send_email(url, email, copyright)
         return
